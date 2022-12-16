@@ -52,6 +52,15 @@ create table if not exists production_patients (
 ); 
 """
 
+table_prod_treatment_procedures = """
+create table if not exists production_treatment_procedures (
+    id int auto_increment,
+    cpt_code varchar(255) default null unique,
+    cpt_name varchar(255) default null,
+    PRIMARY KEY (id)
+);
+"""
+
 table_prod_medications = """
 create table if not exists production_medications (
     id int auto_increment,
@@ -60,7 +69,9 @@ create table if not exists production_medications (
     med_is_dangerous varchar(255) default null,
     PRIMARY KEY (id)
 ); 
+
 """
+
 
 table_prod_conditions = """
 create table if not exists production_conditions (
@@ -100,13 +111,14 @@ Azure_Database.execute(table_prod_medications)
 Azure_Database.execute(table_prod_conditions)
 Azure_Database.execute(table_prod_patients_medications)
 Azure_Database.execute(table_prod_patient_conditions)
+Azure_Database.execute(table_prod_treatment_procedures)
 
 
 # show tables from databases
 gcp_tables = Azure_Database.table_names()
 
 # reorder tables based on what will be the parent table vs. child table
-tableNames_gcp = ['production_patient_conditions', 'production_patient_medications', 'production_medications', 'production_patients', 'production_conditions']
+tableNames_gcp = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
 
 # delete everything
 drop_tables_limited(tableNames_gcp, Azure_Database)
