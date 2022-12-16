@@ -79,16 +79,6 @@ for index, row in ndc_codes_1k.iterrows():
         break
 Azure_Dataframe = pandas.read_sql_query("SELECT * FROM production_medications", Azure_Database)
 
-insertQuery = "INSERT INTO production_treatments_procedures (cpt) VALUES (%s)"
-cptRowCount = 0
-for index, row in cpt_codes_1k.iterrows():
-    cptRowCount += 1
-    Azure_Dataframe.execute(insertQuery, (row['com.medigy.persist.reference.type.clincial.CPT.code']))
-    print("inserted row: ", index)
-    if cptRowCount == 100:
-        break
-Azure_Dataframe = pandas.read_sql_query("SELECT * FROM production_treatments_procedures", Azure_Database)
-
 df_conditions = pandas.read_sql_query('SELECT icd10_code FROM production_conditions', Azure_Database)
 df_patients = pandas.read_sql_query('SELECT mrn FROM production_patients', Azure_Database)
 
@@ -100,13 +90,13 @@ for index, row in df_patients.iterrows():
     df_patient_conditions = df_patient_conditions.append(df_conditions_sample)
 print(df_patient_conditions.head(10))
 
-insertQuery = 'INSERT INTO patient_conditions (mrn, icd10_code) VALUES (%s, %s)'
+insertQuery = "INSERT INTO production_patient_conditions (mrn, icd10_code) VALUES (%s, %s)"
 for index, row in df_patient_conditions.iterrows():
     Azure_Database.execute(insertQuery, (row['mrn'], row['icd10_code']))
     print('inserted row: ', index)
 
 df_medications = pandas.read_sql_query("SELECT med_ndc FROM production_medications", Azure_Database) 
-df_patients = pandas.read_sql_query('SELECT mrn FROM patients', Azure_Database)
+df_patients = pandas.read_sql_query("SELECT mrn FROM production_patients", Azure_Database)
 
 df_patient_medications = pandas.DataFrame(columns=['mrn', 'med_ndc'])
 for index, row in df_patients.iterrows():
@@ -116,7 +106,7 @@ for index, row in df_patients.iterrows():
     df_patient_medications = df_patient_medications.append(df_medications_sample)
 print(df_patient_medications.head(10))
 
-insertQuery = 'INSERT INTO patient_medications (mrn, med_ndc) VALUES (%s, %s)'
+insertQuery = 'INSERT INTO production_patient_medications (mrn, med_ndc) VALUES (%s, %s)'
 for index, row in df_patient_medications.iterrows():
     Azure_Database.execute(insertQuery, (row['mrn'], row['med_ndc']))
     print('inserted row: ', index)
