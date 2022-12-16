@@ -10,11 +10,6 @@ import random
 
 load_dotenv()
 
-# MySQL_Azure_Hostname = '35.237.61.150'
-# MySQL_Azure_User = 'patient-portal'
-# MySQL_Azure_Password = '@JamesTimothyCiaz55'
-# MySQL_Azure_Database = 'patient_portal'
-
 MySQL_Azure_Hostname = os.getenv('MySQL_Azure_Hostname')
 MySQL_Azure_User = os.getenv('MySQL_Azure_User')
 MySQL_Azure_Password = os.getenv('MySQL_Azure_Password')
