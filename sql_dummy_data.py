@@ -10,10 +10,15 @@ import random
 
 load_dotenv()
 
-MySQL_Azure_Hostname = os.getenv('MySQL_Azure_Hostname')
-MySQL_Azure_User = os.getenv('MySQL_Azure_User')
-MySQL_Azure_Password = os.getenv('MySQL_Azure_Password')
-MySQL_Azure_Database = os.getenv('MySQL_Azure_Database')
+MySQL_Azure_Hostname = '4.236.187.210'
+MySQL_Azure_User = 'newuser'
+MySQL_Azure_Password = 'password'
+MySQL_Azure_Database = 'patient_portal'
+
+# MySQL_Azure_Hostname = os.getenv('MySQL_Azure_Hostname')
+# MySQL_Azure_User = os.getenv('MySQL_Azure_User')
+# MySQL_Azure_Password = os.getenv('MySQL_Azure_Password')
+# MySQL_Azure_Database = os.getenv('MySQL_Azure_Database')
 
 Azure_Database = create_engine(f'mysql+pymysql://{MySQL_Azure_User}:{MySQL_Azure_Password}@{MySQL_Azure_Hostname}:3306/{MySQL_Azure_Database}')
 
@@ -61,7 +66,7 @@ for index, row in df_fake_patients.iterrows():
     print("inserted row: ", index)
 Azure_Dataframe = pandas.read_sql_query("SELECT * FROM production_patients", Azure_Database)
 
-insertQuery = "INSERT INTO production_conditions (icd10_code, icd10_description) VALUES (%s, %s)"
+insertQuery = "INSERT INTO production_conditions (icd10_code, icd10_desc) VALUES (%s, %s)"
 startingRow = 0
 for index, row in icd10codesShort_1k.iterrows():
     startingRow += 1
@@ -90,7 +95,7 @@ for index, row in cpt_codes_1k.iterrows():
     print('inserted row: ', index)
     if procRowCount == 100:
         break
-Azure_Dataframe = pandas.read_sql_query("SELECT * sx_procedure", Azure_Database)
+Azure_Dataframe = pandas.read_sql_query("SELECT * FROM sx_procedure", Azure_Database)
 
 df_conditions = pandas.read_sql_query('SELECT icd10_code FROM production_conditions', Azure_Database)
 df_patients = pandas.read_sql_query('SELECT mrn FROM production_patients', Azure_Database)
