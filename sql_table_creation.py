@@ -7,9 +7,9 @@ import os
 
 load_dotenv()
 
-MySQL_Azure_Hostname = '4.236.187.210'
-MySQL_Azure_User = 'newuser'
-MySQL_Azure_Password = 'password'
+MySQL_Azure_Hostname = '35.237.61.150'
+MySQL_Azure_User = 'patient-portal'
+MySQL_Azure_Password = '@JamesTimothyCiaz55'
 MySQL_Azure_Database = 'patient_portal'
 
 # MySQL_Azure_Hostname = os.getenv('MySQL_Azure_Hostname')
@@ -20,24 +20,27 @@ MySQL_Azure_Database = 'patient_portal'
 Azure_Database = create_engine(f'mysql+pymysql://{MySQL_Azure_User}:{MySQL_Azure_Password}@{MySQL_Azure_Hostname}:3306/{MySQL_Azure_Database}')
 
 Azure_TableNames = Azure_Database.table_names()
-Azure_TableNames = ['production_patients ', 'production_conditions', 'production_medications', 'sx_procedure', 'patient_procedure','patient_conditions', 'patient_medications']
 print(Azure_TableNames)
 
-# first step below is just creating a basic version of each of the tables,
-# along with the primary keys and default values
+def droppingFunction_limited(AzureList, Azure_Source):
+    for table in AzureList:
+        if table.startswith('production_') == False:
+            Azure_Source.execute(f'drop table {table}')
+            print(f'dropped table {table}')
+        else:
+            print(f'kept table {table}')
 
-####  CREATE TABLES  ####
-table_sx_procedure = """
-create table if not exists sx_procedure (
-    id int auto_increment,
-    proc_cpt varchar(255) default null unique,
-    proc_desc varchar(255) default null,
-    PRIMARY KEY (id)
-);
-"""
+def droppingFunction_all(AzureList, Azure_Source):
+    for table in AzureList:
+        Azure_Source.execute(f'drop table {table}')
+        print(f'dropped table {table} succesfully!')
+    else:
+        print(f'kept table {table}')
 
-table_production_patients  = """
-create table if not exists production_patients  (
+
+
+table_prod_patients = """
+create table if not exists production_patients (
     id int auto_increment,
     mrn varchar(255) default null unique,
     first_name varchar(255) default null,
@@ -54,16 +57,7 @@ create table if not exists production_patients  (
 ); 
 """
 
-table_production_conditions = """
-create table if not exists production_conditions (
-    id int auto_increment,
-    icd10_code varchar(255) default null unique,
-    icd10_desc varchar(255) default null,
-    PRIMARY KEY (id) 
-); 
-"""
-
-table_production_medications = """
+table_prod_medications = """
 create table if not exists production_medications (
     id int auto_increment,
     med_ndc varchar(255) default null unique,
@@ -73,47 +67,60 @@ create table if not exists production_medications (
 ); 
 """
 
-table_patient_procedure = """
-create table if not exists patient_procedure (
+table_prod_conditions = """
+create table if not exists production_conditions (
     id int auto_increment,
-    mrn varchar(255) default null,
-    proc_cpt varchar(255) default null,
-    PRIMARY KEY (id),
-    FOREIGN KEY (mrn) REFERENCES patients(mrn) ON DELETE CASCADE,
-    FOREIGN KEY (proc_cpt) REFERENCES sx_procedure(proc_cpt) ON DELETE CASCADE
+    icd10_code varchar(255) default null unique,
+    icd10_description varchar(255) default null,
+    PRIMARY KEY (id) 
 ); 
 """
 
-table_patient_conditions = """
-create table if not exists patient_conditions (
-    id int auto_increment,
-    mrn varchar(255) default null,
-    icd10_code varchar(255) default null,
-    PRIMARY KEY (id),
-    FOREIGN KEY (mrn) REFERENCES patients(mrn) ON DELETE CASCADE,
-    FOREIGN KEY (icd10_code) REFERENCES conditions(icd10_code) ON DELETE CASCADE
-); 
-"""
-
-table_patients_medications = """
-create table if not exists patient_medications (
+table_prod_patients_medications = """
+create table if not exists production_patient_medications (
     id int auto_increment,
     mrn varchar(255) default null,
     med_ndc varchar(255) default null,
     PRIMARY KEY (id),
-    FOREIGN KEY (mrn) REFERENCES patients(mrn) ON DELETE CASCADE,
-    FOREIGN KEY (med_ndc) REFERENCES medications(med_ndc) ON DELETE CASCADE
+    FOREIGN KEY (mrn) REFERENCES production_patients(mrn) ON DELETE CASCADE,
+    FOREIGN KEY (med_ndc) REFERENCES production_medications(med_ndc) ON DELETE CASCADE
 ); 
 """
 
-Azure_Database.execute(table_sx_procedure)
-Azure_Database.execute(table_production_patients)
-Azure_Database.execute(table_production_conditions)
-Azure_Database.execute(table_production_medications)
-Azure_Database.execute(table_patient_procedure)
-Azure_Database.execute(table_patient_conditions)
-Azure_Database.execute(table_patients_medications)
+table_prod_patient_conditions = """
+create table if not exists production_patient_conditions (
+    id int auto_increment,
+    mrn varchar(255) default null,
+    icd10_code varchar(255) default null,
+    PRIMARY KEY (id),
+    FOREIGN KEY (mrn) REFERENCES production_patients(mrn) ON DELETE CASCADE,
+    FOREIGN KEY (icd10_code) REFERENCES production_conditions(icd10_code) ON DELETE CASCADE
+); 
+"""
+
+table_prod_treatments_procedures = """
+create table if not exists production_treatments_procedures (
+    id int auto_increment,
+    cpt varchar(255) default null unique,
+    PRIMARY KEY (id)
+); 
+"""
+
+# execute the commands above to create tables
+Azure_Database.execute(table_prod_patients)
+Azure_Database.execute(table_prod_medications)
+Azure_Database.execute(table_prod_conditions)
+Azure_Database.execute(table_prod_patients_medications)
+Azure_Database.execute(table_prod_patient_conditions)
+Azure_Database.execute(table_prod_treatments_procedures)
 
 
-# get tables from db_azure
+
+# show tables from databases
 Azure_Tables = Azure_Database.table_names()
+
+# reorder tables based on what will be the parent table vs. child table
+Azure_TableNames = ['production_patient_conditions', 'production_patient_medications', 'production_medications', 'production_patients', 'production_conditions']
+
+# delete everything
+droppingFunction_all(Azure_TableNames, Azure_Database)
