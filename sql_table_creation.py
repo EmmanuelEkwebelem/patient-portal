@@ -7,13 +7,13 @@ import os
 
 load_dotenv()
 
-MySQL_Azure_Hostname = os.getenv('MySQL_Azure_Hostname')
-MySQL_Azure_User = os.getenv('MySQL_Azure_User')
-MySQL_Azure_Password = os.getenv('MySQL_Azure_Password')
-MySQL_Azure_Database = os.getenv('MySQL_Azure_Database')
+MySQL_Hostname = os.getenv('MySQL_Hostname')
+MySQL_User = os.getenv('MySQL_User')
+MySQL_Password = os.getenv('MySQL_Password')
+MySQL_Database = os.getenv('MySQL_Database')
 
-Azure_Database = create_engine(f'mysql+pymysql://{MySQL_Azure_User}:{MySQL_Azure_Password}@{MySQL_Azure_Hostname}:3306/{MySQL_Azure_Database}')
-Azure_TableNames = Azure_Database.table_names
+Database = create_engine(f'mysql+pymysql://{MySQL_User}:{MySQL_Password}@{MySQL_Hostname}:3306/{MySQL_Database}')
+TableNames = Database.table_names
 
 def drop_tables_limited(dbList, db_source):
     for table in dbList:
@@ -100,14 +100,15 @@ create table if not exists production_patient_conditions (
 """
 
 # execute the commands above to create tables
-Azure_Database.execute(table_prod_patients)
-Azure_Database.execute(table_prod_medications)
-Azure_Database.execute(table_prod_conditions)
-Azure_Database.execute(table_prod_patients_medications)
-Azure_Database.execute(table_prod_patient_conditions)
-Azure_Database.execute(table_prod_treatment_procedures)
-Azure_Tables = Azure_Database.table_names()
+Database.execute(table_prod_patients)
+Database.execute(table_prod_medications)
+Database.execute(table_prod_conditions)
+Database.execute(table_prod_patients_medications)
+Database.execute(table_prod_patient_conditions)
+Database.execute(table_prod_treatment_procedures)
+
+Tables = Database.table_names()
 
 # Reordering Tables
-Azure_TableNames = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
-drop_tables_limited(Azure_TableNames, Azure_Database)
+TableNames = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
+drop_tables_limited(TableNames, Database)
