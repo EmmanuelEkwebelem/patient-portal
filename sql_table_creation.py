@@ -14,24 +14,24 @@ MySQL_Azure_Database = os.getenv('MySQL_Azure_Database')
 
 Azure_Database = create_engine(f'mysql+pymysql://{MySQL_Azure_User}:{MySQL_Azure_Password}@{MySQL_Azure_Hostname}:3306/{MySQL_Azure_Database}')
 
-Azure_TableNames = Azure_Database.table_names()
-print(Azure_TableNames)
 
-def droppingFunction_limited(AzureList, Azure_Source):
-    for table in AzureList:
-        if table.startswith('production_') == False:
-            Azure_Source.execute(f'drop table {table}')
-            print(f'dropped table {table}')
+Azure_TableNames = Azure_Database.table_names
+
+#  drop the old tables that do not start with production_
+def drop_tables_limited(dbList, db_source):
+    for table in dbList:
+        if table.startswith('production') == False:
+            db_source.exectute(f'Drop table {table}')
+            print(f'{table} has been dropped')
         else:
-            print(f'kept table {table}')
+            print(f'{table} has not been dropped')
 
-def droppingFunction_all(AzureList, Azure_Source):
-    for table in AzureList:
-        Azure_Source.execute(f'drop table {table}')
-        print(f'dropped table {table} succesfully!')
+def drop_tables_all(dbList, db_source):
+    for table in dbList:
+        db_source.execute(f'Drop table {table}')
+        print(f'{table} has been dropped')
     else:
-        print(f'kept table {table}')
-
+        print(f'{table} has not been dropped')
 
 
 table_prod_patients = """
@@ -52,6 +52,15 @@ create table if not exists production_patients (
 ); 
 """
 
+table_prod_treatment_procedures = """
+create table if not exists production_treatment_procedures (
+    id int auto_increment,
+    cpt_code varchar(255) default null unique,
+    cpt_name varchar(255) default null,
+    PRIMARY KEY (id)
+);
+"""
+
 table_prod_medications = """
 create table if not exists production_medications (
     id int auto_increment,
@@ -60,7 +69,9 @@ create table if not exists production_medications (
     med_is_dangerous varchar(255) default null,
     PRIMARY KEY (id)
 ); 
+
 """
+
 
 table_prod_conditions = """
 create table if not exists production_conditions (
@@ -93,13 +104,6 @@ create table if not exists production_patient_conditions (
 ); 
 """
 
-table_prod_treatments_procedures = """
-create table if not exists production_treatments_procedures (
-    id int auto_increment,
-    cpt varchar(255) default null unique,
-    PRIMARY KEY (id)
-); 
-"""
 
 # execute the commands above to create tables
 Azure_Database.execute(table_prod_patients)
@@ -107,15 +111,14 @@ Azure_Database.execute(table_prod_medications)
 Azure_Database.execute(table_prod_conditions)
 Azure_Database.execute(table_prod_patients_medications)
 Azure_Database.execute(table_prod_patient_conditions)
-Azure_Database.execute(table_prod_treatments_procedures)
-
+Azure_Database.execute(table_prod_treatment_procedures)
 
 
 # show tables from databases
-Azure_Tables = Azure_Database.table_names()
+gcp_tables = Azure_Database.table_names()
 
 # reorder tables based on what will be the parent table vs. child table
-Azure_TableNames = ['production_patient_conditions', 'production_patient_medications', 'production_medications', 'production_patients', 'production_conditions']
+tableNames_gcp = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
 
 # delete everything
-droppingFunction_all(Azure_TableNames, Azure_Database)
+drop_tables_limited(tableNames_gcp, Azure_Database)
