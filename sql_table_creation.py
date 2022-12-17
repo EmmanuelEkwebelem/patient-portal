@@ -13,11 +13,8 @@ MySQL_Azure_Password = os.getenv('MySQL_Azure_Password')
 MySQL_Azure_Database = os.getenv('MySQL_Azure_Database')
 
 Azure_Database = create_engine(f'mysql+pymysql://{MySQL_Azure_User}:{MySQL_Azure_Password}@{MySQL_Azure_Hostname}:3306/{MySQL_Azure_Database}')
-
-
 Azure_TableNames = Azure_Database.table_names
 
-#  drop the old tables that do not start with production_
 def drop_tables_limited(dbList, db_source):
     for table in dbList:
         if table.startswith('production') == False:
@@ -69,9 +66,7 @@ create table if not exists production_medications (
     med_is_dangerous varchar(255) default null,
     PRIMARY KEY (id)
 ); 
-
 """
-
 
 table_prod_conditions = """
 create table if not exists production_conditions (
@@ -104,7 +99,6 @@ create table if not exists production_patient_conditions (
 ); 
 """
 
-
 # execute the commands above to create tables
 Azure_Database.execute(table_prod_patients)
 Azure_Database.execute(table_prod_medications)
@@ -112,13 +106,8 @@ Azure_Database.execute(table_prod_conditions)
 Azure_Database.execute(table_prod_patients_medications)
 Azure_Database.execute(table_prod_patient_conditions)
 Azure_Database.execute(table_prod_treatment_procedures)
+Azure_Tables = Azure_Database.table_names()
 
-
-# show tables from databases
-gcp_tables = Azure_Database.table_names()
-
-# reorder tables based on what will be the parent table vs. child table
-tableNames_gcp = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
-
-# delete everything
-drop_tables_limited(tableNames_gcp, Azure_Database)
+# Reordering Tables
+Azure_TableNames = ['production_patient_conditions', 'production_patient_medications', 'production_treatment_procedures', 'production_conditions', 'production_medications', 'production_patients',]
+drop_tables_limited(Azure_TableNames, Azure_Database)

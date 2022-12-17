@@ -70,7 +70,6 @@ for index, row in cptcodesShort_1k.iterrows():
     print("inserted row: ", index)
     if startingRow == 100:
         break
-
 Azure_Dataframe = pandas.read_sql_query("SELECT * FROM production_treatment_procedures", Azure_Database)
 
 insertQuery = "INSERT INTO production_conditions (icd10_code, icd10_description) VALUES (%s, %s)"
